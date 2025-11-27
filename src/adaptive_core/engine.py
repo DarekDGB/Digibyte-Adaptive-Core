@@ -207,10 +207,8 @@ class AdaptiveEngine:
             }
 
         total_considered = len(packets)
-        # restrict to last `window` packets for short-term view
         recent = packets[-window:]
 
-        # counts per type overall and in recent window
         total_type_counts: Dict[str, int] = {}
         recent_type_counts: Dict[str, int] = {}
         for p in packets:
@@ -227,8 +225,6 @@ class AdaptiveEngine:
             recent_freq = recent_count / float(len(recent))
             overall_freq = total_count / float(total_considered)
 
-            # simple heuristic: recent frequency 1.5x higher than overall
-            # and at least 2 occurrences in the recent window
             if recent_count >= 2 and recent_freq > overall_freq * 1.5:
                 rising_patterns.append(
                     {
@@ -240,7 +236,6 @@ class AdaptiveEngine:
                     }
                 )
 
-        # hotspot layers in recent window
         layer_counts: Dict[str, int] = {}
         for p in recent:
             layer_counts[p.source_layer] = layer_counts.get(p.source_layer, 0) + 1
@@ -257,6 +252,89 @@ class AdaptiveEngine:
             "total_considered": total_considered,
             "rising_patterns": rising_patterns,
             "hotspot_layers": hotspot_layers,
+        }
+
+    def detect_threat_correlations(
+        self,
+        min_severity: int = 0,
+    ) -> Dict[str, Any]:
+        """
+        Detect simple correlations between threats.
+
+        Looks for:
+            - frequent adjacent threat-type pairs
+            - common (source_layer, threat_type) combinations
+
+        Returns:
+            {
+                "pair_correlations": [
+                    {
+                        "from_type": str,
+                        "to_type": str,
+                        "count": int,
+                    },
+                    ...
+                ],
+                "layer_threat_combos": [
+                    {
+                        "source_layer": str,
+                        "threat_type": str,
+                        "count": int,
+                    },
+                    ...
+                ],
+            }
+        """
+        packets = [
+            p for p in self.threat_memory.list_packets()
+            if p.severity >= min_severity
+        ]
+
+        if len(packets) < 2:
+            return {
+                "pair_correlations": [],
+                "layer_threat_combos": [],
+            }
+
+        # Adjacent threat-type pairs
+        pair_counts: Dict[tuple[str, str], int] = {}
+        for i in range(len(packets) - 1):
+            a = packets[i].threat_type
+            b = packets[i + 1].threat_type
+            key = (a, b)
+            pair_counts[key] = pair_counts.get(key, 0) + 1
+
+        pair_correlations = [
+            {
+                "from_type": a,
+                "to_type": b,
+                "count": count,
+            }
+            for (a, b), count in sorted(
+                pair_counts.items(), key=lambda x: x[1], reverse=True
+            )
+        ]
+
+        # (layer, threat_type) combinations
+        combo_counts: Dict[tuple[str, str], int] = {}
+        for p in packets:
+            key = (p.source_layer, p.threat_type)
+            combo_counts[key] = combo_counts.get(key, 0) + 1
+
+        layer_threat_combos = [
+            {
+                "source_layer": layer,
+                "threat_type": ttype,
+                "count": count,
+            }
+            for (layer, ttype), count in sorted(
+                combo_counts.items(), key=lambda x: x[1], reverse=True
+            )
+        ]
+
+        return {
+            "pair_correlations": pair_correlations,
+            "layer_threat_combos": layer_threat_combos,
         }
 
     def threat_insights(self, min_severity: int = 0) -> str:
