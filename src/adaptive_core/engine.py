@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Any
 
 from .models import (
     RiskEvent,
@@ -113,6 +113,70 @@ class AdaptiveEngine:
 
         return summary
 
+    def analyze_threats(
+        self,
+        min_severity: int = 0,
+        last_n: int = 5,
+    ) -> Dict[str, Any]:
+        """
+        Basic threat analysis stub.
+
+        Returns a dictionary with:
+            - total_count: total number of recorded threats (after filter)
+            - average_severity: float (0 if no threats)
+            - max_severity: highest severity seen (0 if none)
+            - most_common_type: threat_type string or None
+            - last_threats: list of last N threats (dicts with key details)
+        """
+        packets = [
+            p for p in self.threat_memory.list_packets()
+            if p.severity >= min_severity
+        ]
+
+        if not packets:
+            return {
+                "total_count": 0,
+                "average_severity": 0.0,
+                "max_severity": 0,
+                "most_common_type": None,
+                "last_threats": [],
+            }
+
+        total_count = len(packets)
+        severities = [p.severity for p in packets]
+        average_severity = sum(severities) / float(total_count)
+        max_severity = max(severities)
+
+        # most common threat_type
+        type_counts: Dict[str, int] = {}
+        for p in packets:
+            type_counts[p.threat_type] = type_counts.get(p.threat_type, 0) + 1
+        most_common_type = max(type_counts.items(), key=lambda x: x[1])[0]
+
+        # last N threats (most recent at the end of memory list)
+        last = packets[-last_n:]
+        last_threats = [
+            {
+                "source_layer": p.source_layer,
+                "threat_type": p.threat_type,
+                "severity": p.severity,
+                "timestamp": p.timestamp,
+                "node_id": p.node_id,
+                "wallet_id": p.wallet_id,
+                "tx_id": p.tx_id,
+                "block_height": p.block_height,
+            }
+            for p in last
+        ]
+
+        return {
+            "total_count": total_count,
+            "average_severity": average_severity,
+            "max_severity": max_severity,
+            "most_common_type": most_common_type,
+            "last_threats": last_threats,
+        }
+
     def threat_insights(self, min_severity: int = 0) -> str:
         """
         Produce a human-readable summary of threat patterns stored in memory.
@@ -128,7 +192,6 @@ class AdaptiveEngine:
 
         lines = []
         for threat_type, count in summary.items():
-            # Format the type nicely for humans
             label = threat_type.replace("_", " ").title()
             lines.append(f"{label}: {count}")
 
