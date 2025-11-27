@@ -12,6 +12,8 @@ from .models import (
     LayerAdjustment,
 )
 from .memory import InMemoryAdaptiveStore
+from .threat_memory import ThreatMemory
+from .threat_packet import ThreatPacket
 
 
 class AdaptiveEngine:
@@ -45,6 +47,11 @@ class AdaptiveEngine:
         # If no initial state is provided, start with an empty mapping and
         # default global_threshold from AdaptiveState.
         self.state = initial_state or AdaptiveState(layer_weights={})
+
+        # Threat memory: stores unified ThreatPacket objects coming
+        # from all shield layers. Loaded from disk if present.
+        self.threat_memory = ThreatMemory()
+        self.threat_memory.load()
 
     # ------------------------------------------------------------------ #
     # Public API
@@ -90,6 +97,17 @@ class AdaptiveEngine:
             processed_events=[e.event_id for e in events_list],
         )
         return result
+
+    def receive_threat_packet(self, packet: ThreatPacket) -> None:
+        """
+        Receive a ThreatPacket from any shield layer and persist it
+        into ThreatMemory.
+
+        Later, this stored history will be used for deeper analysis
+        and pattern-based adaptation.
+        """
+        self.threat_memory.add_packet(packet)
+        self.threat_memory.save()
 
     # ------------------------------------------------------------------ #
     # Internal helpers
