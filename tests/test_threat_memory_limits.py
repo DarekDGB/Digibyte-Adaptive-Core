@@ -9,6 +9,10 @@ from adaptive_core.threat_packet import ThreatPacket
 
 
 def _make_packet(i: int) -> ThreatPacket:
+    """
+    Create a minimal ThreatPacket instance that matches the real
+    ThreatPacket schema used in the project. No extra fields.
+    """
     return ThreatPacket(
         source_layer="test_layer",
         threat_type="test_threat",
@@ -18,11 +22,14 @@ def _make_packet(i: int) -> ThreatPacket:
         wallet_id=None,
         tx_id=None,
         block_height=i,
-        meta={"index": i},
     )
 
 
 def test_threat_memory_prunes_old_packets(tmp_path) -> None:
+    """
+    ThreatMemory should keep at most `max_packets` entries, pruning
+    the oldest packets first (FIFO) both in-memory and after reload.
+    """
     path: Path = tmp_path / "memory.json"
     mem = ThreatMemory(path=path, max_packets=100)
 
@@ -30,14 +37,16 @@ def test_threat_memory_prunes_old_packets(tmp_path) -> None:
     for i in range(150):
         mem.add_packet(_make_packet(i))
 
-    assert len(mem.list_packets()) == 100
+    packets = mem.list_packets()
+    assert len(packets) == 100
     # First remaining packet should correspond to i == 50
-    assert mem.list_packets()[0].block_height == 50
+    assert packets[0].block_height == 50
 
     # Save and reload to ensure the limit also applies on load.
     mem.save()
     reloaded = ThreatMemory(path=path, max_packets=100)
     reloaded.load()
 
-    assert len(reloaded.list_packets()) == 100
-    assert reloaded.list_packets()[0].block_height == 50
+    reloaded_packets = reloaded.list_packets()
+    assert len(reloaded_packets) == 100
+    assert reloaded_packets[0].block_height == 50
