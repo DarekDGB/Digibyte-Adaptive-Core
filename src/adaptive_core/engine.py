@@ -15,6 +15,7 @@ from .models import (
 from .memory import InMemoryAdaptiveStore
 from .threat_memory import ThreatMemory
 from .threat_packet import ThreatPacket
+from .pattern_engine import DeepPatternEngine
 
 
 class AdaptiveEngine:
@@ -411,7 +412,8 @@ class AdaptiveEngine:
         last_n: int = 5,
     ) -> Dict[str, Any]:
         """
-        High-level immune system report combining all analysis components.
+        High-level immune system report combining all analysis components,
+        including the Deep Pattern Engine (spike + diversity).
         """
         summary = self.summarize_threats(min_severity=min_severity)
         analysis = self.analyze_threats(
@@ -429,6 +431,10 @@ class AdaptiveEngine:
             min_severity=min_severity,
             bucket=trend_bucket,
         )
+
+        # Deep Pattern Engine (spike + diversity + composite risk)
+        deep_engine = DeepPatternEngine(memory=self.threat_memory)
+        deep = deep_engine.analyze(min_severity=min_severity)
 
         lines: List[str] = []
         lines.append("=== DigiByte Quantum Adaptive Core — Immune Report ===")
@@ -521,12 +527,20 @@ class AdaptiveEngine:
                 )
         lines.append("")
 
+        # Deep pattern section
+        lines.append(">> Deep Pattern Analysis:")
+        lines.append(f"  Composite risk: {deep['composite_risk']:.2f}")
+        lines.append(f"  Spike score: {deep['spike_score']:.2f}")
+        lines.append(f"  Diversity score: {deep['diversity_score']:.2f}")
+        lines.append("")
+
         return {
             "summary": summary,
             "analysis": analysis,
             "patterns": patterns,
             "correlations": correlations,
             "trends": trends,
+            "deep_patterns": deep,
             "text": "\n".join(lines),
         }
 
