@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from adaptive_core.engine import AdaptiveEngine
 from adaptive_core.threat_memory import ThreatMemory
 from adaptive_core.threat_packet import ThreatPacket
-from pathlib import Path
 
 
 def _packet(
@@ -30,7 +31,9 @@ def _packet(
 def _engine_with_packets(tmp_path) -> AdaptiveEngine:
     mem_path: Path = tmp_path / "memory.json"
     store = ThreatMemory(path=mem_path, max_packets=500)
-    engine = AdaptiveEngine()
+
+    # Use the real AdaptiveEngine wired to ThreatMemory
+    engine = AdaptiveEngine(store=store)
 
     # Feed the engine via public API so ThreatMemory + metadata are used.
     for i in range(10):
@@ -93,3 +96,19 @@ def test_generate_immune_report_structure(tmp_path) -> None:
     assert "trend_direction" in trends
     assert "start_total" in trends
     assert "end_total" in trends
+
+
+def test_immune_report_includes_deep_patterns(tmp_path) -> None:
+    """
+    Ensure generate_immune_report() exposes Deep Pattern Engine output
+    under the 'deep_patterns' key with the expected fields.
+    """
+    engine = _engine_with_packets(tmp_path)
+    report = engine.generate_immune_report(min_severity=0)
+
+    assert "deep_patterns" in report
+
+    deep = report["deep_patterns"]
+    assert "composite_risk" in deep
+    assert "spike_score" in deep
+    assert "diversity_score" in deep
