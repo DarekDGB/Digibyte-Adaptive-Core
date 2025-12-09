@@ -1,153 +1,290 @@
-# 🧬 DigiByte Adaptive Core — v2
-
-Author: **DarekDGB**  
-AI Engineering Assistant: **Angel**  
-License: **MIT**
+# 🧬 Adaptive Core v2  
+### *Self-Learning Defence Engine • Cross-Layer Fusion • Wallet Immune System*  
+**Architecture by @DarekDGB — MIT Licensed**
 
 ---
 
-## 1. Purpose of the Adaptive Core
-The Adaptive Core is the **immune system** of the entire DigiByte Quantum Shield architecture.  
-While the 5 primary layers (Sentinel AI v2, DQSN v2, ADN v2, Guardian Wallet v2, QWG v2) provide detection, confirmation, defense, and wallet safety…  
-**the Adaptive Core learns.**
+## 🚀 Purpose
 
-It continuously:
-- observes high‑risk patterns  
-- stores threat memory  
-- reinforces known signatures  
-- evolves new signatures  
-- sends immune alerts back to all layers  
+**Adaptive Core v2** is the *intelligent immune system* of the DigiByte Quantum Shield.
 
-This allows DigiByte to *get stronger after every attack*.
+It does **not**:
 
----
+- detect network anomalies (Sentinel’s job)  
+- classify attacks (ADN’s job)  
+- verify behaviour or PQC signatures (QWG’s job)  
+- present warnings or confirmations (Guardian Wallet’s job)  
 
-## 2. Core Components
+Instead, Adaptive Core learns **how all shield layers behave over time** and adjusts sensitivity,  
+patterns, and contextual understanding to strengthen the entire defensive stack.
 
-### 🧠 2.1 Pattern Engine
-Learns attack sequences, emerging anomalies, repeated patterns.
-
-### 🗂 2.2 Threat Memory
-Stores condensed “threat packets” describing previous high‑risk events.
-
-### ✏️ 2.3 Memory Writer
-Writes threat packets into long‑term memory and performs pruning rules.
-
-### 🔌 2.4 Interface Layer
-The external API for the other 5 layers to communicate with the Adaptive Core.
-
-### ⚙️ 2.5 Engine
-Coordinates memory, pattern logic, scoring and produces an **Immune Response Packet**.
+It is the *memory, brain, and evolution engine* of the wallet ecosystem.
 
 ---
 
-## 3. What the Adaptive Core Learns
-
-The system incrementally learns:
-
-- UTXO cluster anomalies  
-- Time‑compressed activity bursts  
-- Dormant key sweeps  
-- Multi‑layer correlated risk  
-- Behavioural anomalies  
-- Rare or new unseen attack sequences  
-- Network‑level cross‑signals from DQSN  
-- Node‑level reflex triggers from ADN  
-- Wallet‑level behaviour changes (GW + QWG)
-
-This produces a **Network Immune Score (NIS)** and an **Immune Severity Level**.
-
----
-
-## 4. Data Flow
+# 🛡️ Position in the DigiByte Quantum Shield (5-Layer Model)
 
 ```
-[Sentinel AI] →  
-    signal packets (entropy drops, reorg patterns)
-        ↓
-[DQSN] →  
-    global confirmation + cluster scoring
-        ↓
-[ADN v2] →  
-    defensive events (lockdown, API throttling)
-        ↓
-[Wallet Layers] →  
-    behavioural + quantum signatures
-        ↓
-[Adaptive Core] →  
-    learn → store → evolve → return immune packet
+           ┌───────────────────────────────────┐
+           │          Guardian Wallet          │
+           │   Human Protection & UI Warnings  │
+           └───────────────────────────────────┘
+                           ▲
+                           │
+           ┌───────────────────────────────────┐
+           │      QWG — Quantum Wallet Guard   │
+           │ Behaviour • PQC • Runtime Defence │
+           └───────────────────────────────────┘
+                           ▲
+                           │
+           ┌───────────────────────────────────┐
+           │          ADN v2                  │
+           │ Tactics • Playbooks • Responses  │
+           └───────────────────────────────────┘
+                           ▲
+                           │
+           ┌───────────────────────────────────┐
+           │    Sentinel AI v2                │
+           │ Network Anomaly Detection        │
+           └───────────────────────────────────┘
+                           ▲
+                           │
+           ┌───────────────────────────────────┐
+           │          DQSN v2                  │
+           │ Telemetry • Entropy • Health     │
+           └───────────────────────────────────┘
+
+                          │
+                          ▼
+           ┌───────────────────────────────────┐
+           │        Adaptive Core v2           │
+           │  Fusion • Learning • Sensitivity  │
+           └───────────────────────────────────┘
 ```
 
-Each loop makes the shield stronger.
+Adaptive Core sits **under, behind, and between** all shield layers.
+
+It observes everything.  
+It remembers.  
+It calibrates.  
+It evolves protections intelligently over time.
 
 ---
 
-## 5. Tests Included
+# 🎯 Core Mission
 
-The test suite covers every critical component:
+### ✓ 1. Fuse Signals From All Shield Layers  
+Adaptive Core receives and correlates:
 
-- **test_deep_pattern_engine.py**  
-- **test_engine.py**  
-- **test_immune_report.py**  
-- **test_interface_events.py**  
-- **test_pattern_engine.py**  
-- **test_threat_memory_limits.py**  
+- DQSN metrics  
+- Sentinel anomalies  
+- ADN defence decisions  
+- QWG behavioural alerts  
+- Guardian Wallet user responses  
 
-All tests are currently **passing** (CI green).
+This multi-layer view gives it a broader perspective than any single module.
 
----
+### ✓ 2. Learn Safe & Unsafe Patterns Over Time  
+Examples:
 
-## 6. Reports Included
+- consistent user behaviour patterns  
+- repeated network conditions  
+- temporal clustering of specific anomalies  
 
-The Adaptive Core ships with detailed analytical reports:
+Adaptive Core builds **risk signatures** from observation.
 
-- **Adaptive_ImmuneSystem_LearningReport.md**  
-- **Full_Scale_Attack_Simulation_AdaptiveCore.md**  
-- **Full_Scale_Attack_Simulation_v2.md**  
+### ✓ 3. Adjust Sensitivity Dynamically  
+If threats rise:
 
-These documents show how the immune system:
-- learns  
-- adapts  
-- reinforces memory  
-- responds faster under repeated attack  
+- increase strictness  
+- reduce allowed behaviours  
+- raise warning frequency  
 
----
+If everything is stable:
 
-## 7. Additional Documentation
+- reduce noise  
+- streamline user experience  
 
-All high‑level and developer‑focused docs are stored in `docs/reports/`:
+### ✓ 4. Improve the Shield Without Changing Consensus  
+Adaptive Core influences:
 
-- **AdaptiveCore_CodeBlueprint_v2.md**  
-- **AdaptiveCore_DeveloperGuide_v2.md**  
-- **AdaptiveCore_TechSpec_v2.md**  
-- **AdaptiveCore_Whitepaper_v2.md**  
+- wallet-level defence  
+- warning strength  
+- runtime guard behaviours  
 
-These provide:
-- architecture overview  
-- module responsibilities  
-- API usage  
-- integration examples  
-- technical specifications  
+Never blockchain rules.
 
----
+### ✓ 5. Provide Context to Other Layers  
+Adaptive Core enriches the data passed to:
 
-## 8. Integration Readiness
-
-The Adaptive Core is **complete for v2** and ready for:
-
-- standalone simulation  
-- full‑shield orchestration  
-- DigiByte testnet integration  
-- PQC‑aware memory evolution in future versions  
-
-It is the sixth and final layer required before the full merged **DigiByte Quantum Immune Shield** repository is assembled.
+- ADN (better threat classification context)  
+- QWG (better behavioural baselines)  
+- Guardian Wallet (smarter guidance)
 
 ---
 
-## 9. License (MIT)
+# 🧠 Threat Model
 
-Open‑source. Fully permissionless.  
-Safe for DigiByte and any other UTXO blockchain.
+Adaptive Core protects against:
+
+### **1. Low-Signal Attacks**  
+Threats too subtle for any single layer may become clear when patterns accumulate.
+
+### **2. Evolving Adversaries**  
+As attackers adapt, so does the shield.
+
+### **3. Blind Spots Between Components**  
+If QWG does not see it but ADN does → Adaptive Core correlates.  
+If Sentinel sees noise but DQSN doesn’t → Adaptive Core interprets.
+
+### **4. Repeated User Mistakes**  
+It learns what is normal and what is dangerous for that wallet (anonymous pattern only).
+
+### **5. Mixed Threat Scenarios**  
+When multiple weak signals appear at once.
 
 ---
 
+# 🧩 Internal Architecture (Reference)
+
+```
+adaptive_core/
+│
+├── fusion/
+│     ├── signal_fusion.py       # merges DQSN, Sentinel, ADN, QWG, Guardian
+│     ├── temporal_fusion.py     # time-based patterns
+│     └── context_builder.py     # creates unified threat context
+│
+├── learning/
+│     ├── pattern_memory.py      # stores repeating patterns (anonymous)
+│     ├── sensitivity_engine.py  # adjusts defence levels
+│     └── drift_detector.py      # detects changes in behaviour trends
+│
+├── defence/
+│     ├── adaptation_engine.py   # updates shield parameters
+│     ├── state_manager.py       # keeps safe-mode states
+│     └── escalation_logic.py    # tightening defence when needed
+│
+├── outputs/
+│     ├── qwg_adapter.py         # informs QWG
+│     ├── adn_adapter.py         # informs ADN
+│     └── guardian_adapter.py    # informs Guardian Wallet
+│
+└── utils/
+      ├── types.py
+      ├── config.py
+      └── logging.py
+```
+
+This modular structure is designed for **clean expansion**.
+
+---
+
+# 📡 Data Flow Overview
+
+```
+        [Shield Signals from All Layers]
+   DQSN → Sentinel → ADN → QWG → Guardian
+                      │
+                      ▼
+          ┌────────────────────────┐
+          │     Adaptive Core      │
+          │  Fusion + Learning     │
+          └────────────────────────┘
+                      │
+      ┌───────────────┼────────────────────────┐
+      ▼               ▼                        ▼
+ [Adjust Sensitivity] [Improve Defence]   [Enhance Warnings]
+      │               │                        │
+      ▼               ▼                        ▼
+   QWG Updates     ADN Context           Guardian Advice
+```
+
+Adaptive Core becomes the **intelligence multiplier** for the entire shield.
+
+---
+
+# 🔬 Learning Principles
+
+Adaptive Core uses **bounded, explainable learning**, not AI black boxes.
+
+It learns patterns such as:
+
+- “User always sends to these addresses.”  
+- “Reorg risks usually appear after entropy drops.”  
+- “High-fee anomalies correlate with mempool spikes.”  
+- “User confirms warnings instantly or hesitates.”  
+
+Learning is:
+
+- deterministic  
+- reversible  
+- auditable  
+- anonymous  
+- safe  
+
+---
+
+# 🛡️ Security & Behaviour Principles
+
+1. **Explainability** — every adaptive decision must include a reason.  
+2. **Predictability** — same context → same adaptation.  
+3. **Fail-Safe Defaults** — uncertain? tighten protection.  
+4. **Zero Sensitive Data** — never stores personal identity.  
+5. **Interoperability** — enhances other shield layers, never replaces them.  
+6. **Safety Over Convenience** — protection first, always.  
+7. **Bounded Intelligence** — no black-box ML models.  
+
+---
+
+# ⚙️ Code Status
+
+Adaptive Core provides:
+
+- full fusion skeleton  
+- adaptive decision pipelines  
+- long-term pattern memory  
+- defence escalation logic  
+- modular adapters  
+- clean and stable architecture  
+
+It is **architecture-complete** and ready for community development.
+
+---
+
+# 🧪 Tests
+
+Tests validate:
+
+- signal fusion correctness  
+- adaptation decisions  
+- deterministic behaviour  
+- safe-mode transitions  
+- pattern memory logic  
+- import & structure stability  
+
+More simulation tests can be added by contributors.
+
+---
+
+# 🤝 Contribution Policy
+
+See `CONTRIBUTING.md`.
+
+Summary:
+
+- ✓ improvements welcome  
+- ✓ enhanced learning  
+- ✓ better safety  
+- ✗ no consensus logic ever  
+- ✗ no black-box AI  
+- ✗ no sensitive user data  
+
+---
+
+# 📜 License
+
+MIT License  
+© 2025 **DarekDGB**
+
+This architecture is free to use with mandatory attribution.
