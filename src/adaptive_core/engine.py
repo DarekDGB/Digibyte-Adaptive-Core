@@ -51,7 +51,6 @@ class AdaptiveEngine:
     ) -> None:
         # Store keeps a history of raw events (and in future, snapshots).
         self.store = store or InMemoryAdaptiveStore()
-
         # If no initial state is provided, start with an empty mapping and
         # default global_threshold from AdaptiveState.
         self.state = initial_state or AdaptiveState(layer_weights={})
@@ -115,7 +114,6 @@ class AdaptiveEngine:
         """
         self.threat_memory.add_packet(packet)
         self.threat_memory.save()
-
         # record last time any threat was seen (telemetry only)
         self.last_threat_received = datetime.utcnow().isoformat() + "Z"
 
@@ -341,11 +339,16 @@ class AdaptiveEngine:
         bucket:
             - "hour" → group by YYYY-MM-DD HH:00
             - "day"  → group by YYYY-MM-DD
+
+        Patch C rule:
+          - No silent fallbacks. Invalid timestamps are counted explicitly.
         """
         packets = [
             p for p in self.threat_memory.list_packets()
             if p.severity >= min_severity
         ]
+
+        invalid_timestamp_count = 0
 
         if not packets:
             return {
@@ -354,6 +357,7 @@ class AdaptiveEngine:
                 "trend_direction": "unknown",
                 "start_total": 0,
                 "end_total": 0,
+                "invalid_timestamp_count": 0,
             }
 
         bucket_counts: Dict[str, int] = {}
@@ -362,7 +366,8 @@ class AdaptiveEngine:
         for p in packets:
             try:
                 ts = datetime.fromisoformat(p.timestamp.replace("Z", ""))
-            except Exception:
+            except ValueError:
+                invalid_timestamp_count += 1
                 continue
 
             if bucket == "day":
@@ -381,6 +386,7 @@ class AdaptiveEngine:
                 "trend_direction": "unknown",
                 "start_total": 0,
                 "end_total": 0,
+                "invalid_timestamp_count": invalid_timestamp_count,
             }
 
         keys_sorted = sorted(bucket_counts.keys())
@@ -411,6 +417,7 @@ class AdaptiveEngine:
             "trend_direction": trend_direction,
             "start_total": start_total,
             "end_total": end_total,
+            "invalid_timestamp_count": invalid_timestamp_count,
         }
 
     def generate_immune_report(
