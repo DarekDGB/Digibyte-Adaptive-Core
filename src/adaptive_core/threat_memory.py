@@ -11,7 +11,11 @@ from .threat_packet import ThreatPacket
 
 class ThreatMemory:
     """
-    Lightweight persistent store for ThreatPacket objects.
+    Lightweight store for ThreatPacket objects.
+
+    v2 security rule (Patch B):
+      - In-memory by default (NO implicit disk I/O).
+      - Disk persistence is opt-in by providing `path`.
 
     Design goals:
       - very small footprint (default cap: 10_000 packets)
@@ -25,8 +29,9 @@ class ThreatMemory:
         path: Optional[Path] = None,
         max_packets: int = 10_000,
     ) -> None:
-        # Where the JSON file is stored on disk.
-        self.path: Path = path or Path("threat_memory.json")
+        # Where the JSON file is stored on disk (opt-in).
+        # If None -> purely in-memory, no reads/writes.
+        self.path: Optional[Path] = path
 
         # In-memory list of ThreatPacket objects.
         self._packets: List[ThreatPacket] = []
@@ -55,16 +60,19 @@ class ThreatMemory:
         return list(self._packets)
 
     # ------------------------------------------------------------------ #
-    # Persistence
+    # Persistence (opt-in only)
     # ------------------------------------------------------------------ #
 
     def load(self) -> None:
         """
-        Load packets from disk if the file exists.
+        Load packets from disk if persistence is enabled AND file exists.
 
         Any excess entries beyond max_packets are pruned from the front
         (oldest first) to keep the memory bounded.
         """
+        if self.path is None:
+            return
+
         if not self.path.exists():
             self._packets = []
             return
@@ -77,21 +85,27 @@ class ThreatMemory:
             return
 
         packets: List[ThreatPacket] = []
-        for item in raw:
-            try:
-                packets.append(ThreatPacket.from_dict(item))
-            except Exception:
-                # Skip malformed entries rather than failing hard.
-                continue
+        if isinstance(raw, list):
+            for item in raw:
+                try:
+                    packets.append(ThreatPacket.from_dict(item))
+                except Exception:
+                    # Skip malformed entries rather than failing hard.
+                    continue
 
         self._packets = packets
         self._enforce_limit()
 
     def save(self) -> None:
         """
-        Persist the current packet list to disk as JSON.
+        Persist the current packet list to disk as JSON,
+        only if persistence is enabled (self.path is not None).
         """
+        if self.path is None:
+            return
+
         data = [p.to_dict() for p in self._packets]
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
     # ------------------------------------------------------------------ #
