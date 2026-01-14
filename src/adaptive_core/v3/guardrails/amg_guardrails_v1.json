@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "guardrails": [
+    {"id": "AMG-001", "title": "Deny-by-Default", "category": "authority"},
+    {"id": "AMG-014", "title": "No Silent Fallback", "category": "fail_closed"},
+    {"id": "AMG-022", "title": "Strict Input Canonicalization", "category": "input"},
+    {"id": "AMG-037", "title": "Determinism Guardian", "category": "determinism"},
+    {"id": "AMG-041", "title": "No Hidden Authority", "category": "authority"},
+    {"id": "AMG-045", "title": "Contract Version Discipline", "category": "contract"},
+    {"id": "AMG-051", "title": "No Fix Without Test", "category": "testing"},
+    {"id": "AMG-055", "title": "Proof Pack Required", "category": "testing"},
+    {"id": "AMG-059", "title": "Observability Without Leakage", "category": "observability"},
+    {"id": "AMG-060", "title": "Negative-First Testing", "category": "testing"}
+  ]
+}
