@@ -92,10 +92,15 @@ class InMemoryAdaptiveStore:
         """
         Save a copy of the current adaptive state (lightweight).
         Stored as a rolling window to prevent memory growth.
+
+        Guardrail intent:
+        - snapshots must be immutable references to a point-in-time state
+        - avoid relying on AdaptiveState.copy() (not guaranteed)
         """
         snapshot = StateSnapshot(
             timestamp=datetime.utcnow(),
-            state=state.copy()  # ensure immutable snapshot
+            # Snapshot copy without requiring .copy()
+            state=AdaptiveState(**state.__dict__),
         )
         self.snapshots.append(snapshot)
 
