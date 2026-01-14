@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from .analyze import AnalyzeConfig, generate_findings
 from .confidence import compute_confidence, load_confidence_weights
+from .drift import LayerContract, detect_contract_drift
 from .evidence_store import EvidenceSnapshot
+from .findings import FindingV3
+from .graph import render_drift_dot
 from .guardrails.registry import load_registry
 from .reason_ids import ReasonId
 from .report_models import CapabilitiesV3, UpgradeReportV3
@@ -26,23 +29,41 @@ def build_upgrade_report(
     snapshot: EvidenceSnapshot,
     capabilities: CapabilitiesV3,
     confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
+    # NEW in Step 8:
+    drift_contracts: Optional[List[LayerContract]] = None,
+    include_drift_graph: bool = False,
 ) -> UpgradeReportV3:
     """
-    Build a deterministic v3 report (MD + JSON can be derived from this object).
+    Build a deterministic v3 report.
 
-    Guardrail enforcement:
-    - All guardrail IDs must exist in registry, otherwise fail-closed.
+    - Evidence findings come from counters (generate_findings)
+    - Drift findings come from explicit LayerContract inputs (detect_contract_drift)
+    - Guardrails are validated against registry (fail-closed)
     """
     if not report_id or not isinstance(report_id, str):
         raise ValueError(f"{ReasonId.AC_V3_REPORT_INVALID.value}: report_id")
     if not target_layers or any((not isinstance(x, str) or not x.strip()) for x in target_layers):
         raise ValueError(f"{ReasonId.AC_V3_REPORT_INVALID.value}: target_layers")
+    if drift_contracts is not None and not isinstance(drift_contracts, list):
+        raise ValueError(f"{ReasonId.AC_V3_REPORT_INVALID.value}: drift_contracts must be list or None")
 
     registry = load_registry()
     weights = load_confidence_weights()
 
-    findings_objs = generate_findings(snapshot, AnalyzeConfig())
-    findings: List[Dict[str, Any]] = [asdict(f) for f in findings_objs]
+    # Evidence findings (from hot-window counters)
+    evidence_findings: List[FindingV3] = generate_findings(snapshot, AnalyzeConfig())
+
+    # Drift findings (explicit inputs only — no guessing)
+    drift_findings: List[FindingV3] = []
+    if drift_contracts:
+        drift_findings = detect_contract_drift(drift_contracts)
+
+    # Merge findings deterministically: sort by finding_id
+    all_findings: List[FindingV3] = sorted(
+        (evidence_findings + drift_findings),
+        key=lambda f: f.finding_id,
+    )
+    findings_dicts: List[Dict[str, Any]] = [asdict(f) for f in all_findings]
 
     # Evidence summary is deterministic
     evidence = {
@@ -50,35 +71,48 @@ def build_upgrade_report(
         "by_source_layer": dict(sorted(snapshot.by_source_layer.items())),
         "by_event_type": dict(sorted(snapshot.by_event_type.items())),
         "by_upstream_reason_id": dict(sorted(snapshot.by_upstream_reason_id.items())),
+        "drift_contracts_provided": 0 if not drift_contracts else len(drift_contracts),
+        "drift_findings": len(drift_findings),
     }
 
-    # Compute deterministic confidence (bounded inputs)
     total = snapshot.total_events if snapshot.total_events > 0 else 1
-    # Recurrence ratio: max reason-id ratio (if any)
+
+    # recurrence ratio: max reason-id ratio (if any)
     max_reason_ratio = 0.0
     if snapshot.by_upstream_reason_id:
         max_reason_ratio = max(snapshot.by_upstream_reason_id.values()) / total
 
-    # Average severity proxy: use max finding severity if present (still deterministic)
-    avg_sev = max((f.severity for f in findings_objs), default=0.0)
+    # severity proxy: max finding severity if present
+    max_sev = max((float(f.severity) for f in all_findings), default=0.0)
 
-    # Reproducibility proxy (Step 4): 0.5 if we have at least one finding, else 0.0
-    reproducibility = 0.5 if findings_objs else 0.0
+    # reproducibility proxy:
+    # - 1.0 if any finding includes a reason_id evidence key
+    # - 0.5 if there are findings but no reason_id
+    # - 0.0 if none
+    if not all_findings:
+        reproducibility = 0.0
+    elif any(isinstance(f.evidence, dict) and "reason_id" in f.evidence for f in all_findings):
+        reproducibility = 1.0
+    else:
+        reproducibility = 0.5
 
-    # Cross-layer impact proxy: bounded by number of target layers (Step 4 minimal)
-    cross_layer_impact = min(1.0, len(target_layers) / 5.0)
+    # cross-layer impact: driven by drift findings presence and number of target layers
+    # deterministic: bounded in [0,1]
+    drift_signal = 0.0 if not drift_findings else min(1.0, len(drift_findings) / 5.0)
+    layer_signal = min(1.0, len(target_layers) / 5.0)
+    cross_layer_impact = max(drift_signal, layer_signal)
 
     confidence = compute_confidence(
         recurrence_ratio=max_reason_ratio,
-        avg_severity=avg_sev,
+        avg_severity=max_sev,
         reproducibility=reproducibility,
         cross_layer_impact=cross_layer_impact,
         weights=weights,
     )
 
-    # Guardrails: union from findings (deterministic)
+    # Guardrails: union from all findings (deterministic)
     guardrails_set = set()
-    for f in findings_objs:
+    for f in all_findings:
         guardrails_set.update(f.guardrails)
     guardrails = sorted(guardrails_set)
 
@@ -86,69 +120,70 @@ def build_upgrade_report(
     registry.require_all(guardrails)
     guardrail_titles = registry.titles_for(guardrails)
 
-    # If low confidence: do NOT generate upgrade actions
+    drift_dot: Optional[str] = None
+    if include_drift_graph and drift_findings:
+        drift_dot = render_drift_dot(drift_findings)
+
+    confidence_breakdown = {
+        "recurrence_ratio": round(max_reason_ratio, 6),
+        "max_severity": round(max_sev, 6),
+        "reproducibility": round(reproducibility, 6),
+        "cross_layer_impact": round(cross_layer_impact, 6),
+    }
+
     if confidence < confidence_threshold:
         return UpgradeReportV3(
             report_id=report_id,
             report_type="SIGNAL_COLLECTION_NOTICE",
             target_layers=sorted(target_layers),
             evidence=evidence,
-            findings=findings,
+            findings=findings_dicts,
             guardrails=guardrails,
             guardrail_titles=guardrail_titles,
             confidence=round(confidence, 6),
-            confidence_breakdown={
-                "recurrence_ratio": round(max_reason_ratio, 6),
-                "avg_severity": round(avg_sev, 6),
-                "reproducibility": round(reproducibility, 6),
-                "cross_layer_impact": round(cross_layer_impact, 6),
-            },
+            confidence_breakdown=confidence_breakdown,
             capabilities=capabilities,
+            drift_dot=drift_dot,
             recommended_actions=[
                 "Collect more evidence for recurring reason codes and anomalies.",
-                "Add detectors or instrumentation in upstream layers to increase signal quality.",
+                "If drift is suspected, provide LayerContract inputs for Drift Radar.",
             ],
             required_tests=[],
             exit_criteria=[
                 "Confidence must meet threshold before emitting an Upgrade Report.",
-                "All evidence and findings must remain deterministic and reproducible.",
+                "All outputs must remain deterministic and reproducible.",
             ],
             forbidden_actions=[
-                "Do not relax validation to increase event acceptance.",
-                "Do not apply any code changes based on low-confidence notices.",
+                "Do not relax validation to increase acceptance.",
+                "Do not apply code changes based on low-confidence notices.",
             ],
         )
 
-    # High confidence: emit upgrade guidance (still advisory-only)
     return UpgradeReportV3(
         report_id=report_id,
         report_type="UPGRADE_REPORT",
         target_layers=sorted(target_layers),
         evidence=evidence,
-        findings=findings,
+        findings=findings_dicts,
         guardrails=guardrails,
         guardrail_titles=guardrail_titles,
         confidence=round(confidence, 6),
-        confidence_breakdown={
-            "recurrence_ratio": round(max_reason_ratio, 6),
-            "avg_severity": round(avg_sev, 6),
-            "reproducibility": round(reproducibility, 6),
-            "cross_layer_impact": round(cross_layer_impact, 6),
-        },
+        confidence_breakdown=confidence_breakdown,
         capabilities=capabilities,
+        drift_dot=drift_dot,
         recommended_actions=[
-            "Harden validation/canonicalization at the boundary where the spike occurs.",
-            "Eliminate ambiguous defaults; require explicit inputs or fail closed.",
-            "Add negative tests to reproduce the observed failure mode and lock regression.",
+            "Harden validation/canonicalization at boundaries where spikes occur.",
+            "Resolve contract drift by aligning assumptions across layers (fail-closed).",
+            "Add negative tests and regression locks referencing this report_id.",
         ],
         required_tests=[
-            "Add a negative test that fails on current behavior and passes after the fix.",
+            "Add a negative test that fails before the fix and passes after.",
             "Add a regression lock referencing this report_id.",
         ],
         exit_criteria=[
-            "New tests MUST fail on the prior version and pass after the fix.",
+            "New tests MUST fail on prior version and pass after fix.",
             "Coverage must not regress (≥ project threshold).",
-            "No silent fallbacks; all rejects must emit explicit reason codes.",
+            "No silent fallbacks; explicit reason codes required.",
         ],
         forbidden_actions=[
             "Do not relax validation rules.",
@@ -159,11 +194,12 @@ def build_upgrade_report(
 
 
 def render_report_json(report: UpgradeReportV3) -> str:
+    # JSON stable ordering
     return _json_dumps_stable(asdict(report))
 
 
 def render_report_md(report: UpgradeReportV3) -> str:
-    # Simple deterministic MD rendering (no timestamps, no randomness)
+    # Deterministic MD rendering (no timestamps)
     lines: List[str] = []
     lines.append("# 🔷 ADAPTIVE CORE — UPGRADE REPORT v3")
     lines.append("")
@@ -178,7 +214,9 @@ def render_report_md(report: UpgradeReportV3) -> str:
     lines.append(f"- Telemetry: {report.capabilities.telemetry}")
     lines.append("")
     lines.append("## 📌 Evidence Summary")
-    lines.append(f"- Total events: {report.evidence['total_events']}")
+    lines.append(f"- Total events: {report.evidence.get('total_events')}")
+    lines.append(f"- Drift contracts provided: {report.evidence.get('drift_contracts_provided')}")
+    lines.append(f"- Drift findings: {report.evidence.get('drift_findings')}")
     lines.append("")
     lines.append("## 🛡️ Guardrails Triggered")
     for gid in report.guardrails:
@@ -190,6 +228,21 @@ def render_report_md(report: UpgradeReportV3) -> str:
     for k in sorted(report.confidence_breakdown.keys()):
         lines.append(f"- {k}: {report.confidence_breakdown[k]}")
     lines.append("")
+    lines.append("## 🔍 Findings")
+    if not report.findings:
+        lines.append("_No findings in this window._")
+    else:
+        for f in report.findings:
+            lines.append(f"- `{f.get('finding_id')}` — {f.get('title')}")
+    lines.append("")
+
+    if report.drift_dot:
+        lines.append("## 🧭 Drift Radar Graph (DOT)")
+        lines.append("```dot")
+        lines.append(report.drift_dot)
+        lines.append("```")
+        lines.append("")
+
     lines.append("## ✅ Recommended Actions")
     for a in report.recommended_actions:
         lines.append(f"- {a}")
