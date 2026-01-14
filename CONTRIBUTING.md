@@ -1,151 +1,202 @@
-# Contributing to Adaptive Core (v2)
+# Contributing to Adaptive Core (v3)
 
-**Adaptive Core** is the *self-learning, cross-layer fusion engine* of the DigiByte Quantum Shield.  
-It integrates signals from:
+**Adaptive Core v3** is the **Upgrade Oracle** of the DigiByte Quantum Shield.
 
-- DQSN v2 (network health)  
-- Sentinel AI v2 (anomaly detection)  
-- ADN v2 (defence tactics)  
-- QWG (transaction behaviour analysis)  
-- Guardian Wallet (user decisions)  
+It is a **read-only, deterministic, fail-closed intelligence layer** that:
+- consumes strict, canonicalized security observations
+- aggregates deterministic evidence
+- produces explainable findings and upgrade reports
+- provides *advisory output only* (no execution authority)
 
-Adaptive Core builds **internal models**, **pattern memory**, and **dynamic rule updates**  
-to strengthen future wallet and shield behaviour.
+Adaptive Core v3 is **not AI**, **not autonomous**, and **not self-modifying**.
 
-This is the **AI-like immune system** that evolves with threats.
+It exists to help *humans* and *higher layers* make informed security decisions.
 
-Contributions must enhance:
-- intelligence  
-- safety  
-- learning  
-- pattern recognition  
-- cross-layer signal fusion  
+---
 
-while keeping the architecture transparent and deterministic.
+## ⚖️ Core Contribution Philosophy
+
+All contributions MUST preserve these invariants:
+
+- **Determinism** — same input → same output
+- **Explainability** — every finding must be human-readable
+- **Fail-closed behavior** — malformed or ambiguous input is rejected
+- **No authority** — Adaptive Core never executes actions
+- **Bounded logic** — no unbounded learning or autonomous evolution
+
+If a contribution violates *any* of these, it will not be accepted.
 
 ---
 
 ## ✅ What Contributions Are Welcome
 
-### ✔️ 1. Signal Fusion Improvements
-- better combination of multi-layer inputs  
-- weighting, scoring, or confidence models  
-- new fusion methods (rule-based, statistical, heuristic)
+### ✔️ 1. Canonicalization & Validation
+Improvements to:
+- strict schema validation
+- canonical ordering
+- rejection of malformed inputs
+- reason-code accuracy
 
-### ✔️ 2. Behavioural Pattern Memory
-- long-term detection patterns  
-- anomalous user-behaviour sequences  
-- transaction habits modelling (non-invasive, anonymous)
+Files typically involved:
+- `adaptive_core/v3/canonicalize.py`
+- `adaptive_core/v3/events.py`
+- `adaptive_core/v3/reason_ids.py`
 
-### ✔️ 3. Adaptive Defence Logic
-- smarter safe-mode triggers  
-- dynamic sensitivity adjustments  
-- context-aware defence decisions  
+---
 
-### ✔️ 4. Explainability Improvements
-Add logic to ensure adaptive decisions are always:
+### ✔️ 2. Evidence Aggregation
+Enhancements to:
+- deterministic counters
+- bounded window behavior
+- eviction correctness
+- snapshot integrity
 
-- traceable  
-- explainable  
-- auditable  
+Files:
+- `adaptive_core/v3/evidence_store.py`
 
-### ✔️ 5. Test Improvements
-- scenario simulations  
-- fusion-path verification  
-- behaviour-sequence tests  
+---
 
-### ✔️ 6. Documentation Enhancements
-Clear explanations of:
+### ✔️ 3. Findings & Analysis
+Improvements to:
+- drift detection logic
+- trend interpretation
+- rule-based findings
+- guardrail-backed reasoning
 
-- how adaptation works  
-- how fusion occurs  
-- safety philosophy  
+Files:
+- `adaptive_core/v3/analyze.py`
+- `adaptive_core/v3/findings.py`
+- `adaptive_core/v3/drift.py`
+
+---
+
+### ✔️ 4. Guardrails & Contracts
+Clarifications or extensions to:
+- guardrail registry
+- invariant enforcement
+- contract documentation
+
+Files:
+- `adaptive_core/v3/guardrails/registry.py`
+- `docs/reports/v3/GUARDRAILS.md`
+- `docs/reports/v3/CONTRACT.md`
+
+---
+
+### ✔️ 5. Reports & Envelopes
+Work on:
+- deterministic report rendering
+- envelope integrity
+- signature metadata handling
+- format stability
+
+Files:
+- `adaptive_core/v3/report_builder.py`
+- `adaptive_core/v3/envelope.py`
+- `docs/reports/v3/REPORT_FORMAT.md`
+
+---
+
+### ✔️ 6. Tests
+Highly encouraged:
+- negative tests
+- malformed input tests
+- invariant enforcement tests
+- regression locks
+
+Coverage **must not decrease**.
+
+---
+
+### ✔️ 7. Documentation
+Clarifications to:
+- authority boundaries
+- pipeline usage
+- reasoning models
+- security philosophy
+
+Docs live under: docs/reports/v3/
 
 ---
 
 ## ❌ What Will NOT Be Accepted
 
-### 🚫 1. Opaque or Black-Box ML Models
-Adaptive Core must *never* become:
-
-- a neural network  
-- an unexplainable AI system  
-- a black-box prediction engine  
-
-All behaviour must remain fully **transparent** and **deterministic**.
-
-### 🚫 2. Removal of Core Layers
-Adaptive Core depends on *all* shield inputs.  
-Removing any integration path is not allowed.
-
-### 🚫 3. Consensus or Node Behaviour Changes
-Adaptive Core:
-
-- cannot change consensus rules  
-- cannot modify mempool logic  
-- cannot influence network nodes  
-
-Adaptation happens *inside the wallet ecosystem*, nowhere else.
-
-### 🚫 4. Storing Sensitive User Data
-No personal data, no behavioural tracking tied to identity.  
-Only **anonymous behavioural patterns** are allowed.
-
-### 🚫 5. Unbounded Learning
-Adaptation must be:
-
-- safe  
-- reversible  
-- controlled  
-- predictable  
-
-Not open-ended.
+### 🚫 1. Autonomous or Self-Modifying Logic
+Adaptive Core v3 must **never**:
+- tune itself
+- rewrite its own rules
+- apply upgrades automatically
 
 ---
 
-## 🧱 Design Principles
+### 🚫 2. Black-Box or ML Models
+No:
+- neural networks
+- probabilistic AI
+- opaque scoring
+- hidden heuristics
 
-1. **Explainability**  
-   Every adaptive decision must include a human-readable reason.
-
-2. **Deterministic Learning**  
-   If the same signals happen again, Adaptive Core responds the same way.
-
-3. **Safety First**  
-   Adaptation must increase security, not reduce it.
-
-4. **Layer Awareness**  
-   All shield signals are combined: DQSN → Sentinel → ADN → QWG → Guardian.
-
-5. **Bounded Evolution**  
-   No uncontrolled intelligence or unpredictable behaviour.
-
-6. **Fail-Safe Defaults**  
-   If uncertain → revert to safer mode.
-
-7. **Minimalism**  
-   No unnecessary complexity. Clear, modular, future-proof.
+All logic must be **explicit, inspectable, and deterministic**.
 
 ---
 
-## 🔄 Pull Request Expectations
+### 🚫 3. Execution Authority
+Adaptive Core must not:
+- execute transactions
+- change wallet state
+- block or allow operations
+- modify node behavior
 
-A valid PR includes:
+---
 
-- clear explanation of what was changed  
-- demonstration of improved safety or logic  
-- updated tests if behaviour changes  
-- no breaking of folder structure  
-- no reduction of explainability  
-- no black-box code  
+### 🚫 4. Identity or Personal Data
+No:
+- user identifiers
+- behavioral tracking tied to identity
+- persistent personal data
 
-The architect (@DarekDGB) validates **direction**.  
-Developers validate **implementation**.
+All inputs must be **anonymous and aggregate-safe**.
+
+---
+
+### 🚫 5. Silent Fallbacks
+No:
+- auto-defaults
+- silent corrections
+- guessing missing fields
+
+Invalid input → **reject with reason ID**.
+
+---
+
+## 🧱 Design Principles (Non-Negotiable)
+
+1. **Read-Only Oracle**
+2. **Human-Reviewed Output**
+3. **Fail-Closed by Default**
+4. **Deterministic Everywhere**
+5. **Bounded State**
+6. **Minimal Attack Surface**
+7. **Contracts Over Assumptions**
+
+---
+
+## 🔄 Pull Request Requirements
+
+A valid PR must include:
+- clear explanation of intent
+- explicit invariants preserved
+- tests covering new behavior
+- no reduction in determinism
+- no authority expansion
+
+The repository architect (**@DarekDGB**) validates **architecture & direction**.  
+Contributors validate **implementation correctness**.
 
 ---
 
 ## 📝 License
 
-By contributing, you agree your contributions are licensed under the MIT License.
+By contributing, you agree that your contributions are licensed under the MIT License.
 
 © 2025 **DarekDGB**
