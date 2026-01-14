@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from importlib import resources
-from typing import Dict, Iterable, List, Set, Tuple
+from typing import Dict, Iterable
 
 from ..reason_ids import ReasonId
 
@@ -40,12 +40,26 @@ class GuardrailRegistry:
         return {gid: self._guardrails[gid].title for gid in ids}
 
 
+def _is_valid_amg_id(gid: object) -> bool:
+    # Must be exactly "AMG-" + 3 digits, e.g. AMG-001
+    return (
+        isinstance(gid, str)
+        and gid.startswith("AMG-")
+        and len(gid) == 7
+        and gid[4:].isdigit()
+    )
+
+
 def load_registry() -> GuardrailRegistry:
     """
     Load guardrails registry from package JSON.
     Deterministic: strict validation + stable ordering.
     """
-    data_text = resources.files("adaptive_core.v3.guardrails").joinpath("amg_guardrails_v1.json").read_text(encoding="utf-8")
+    data_text = (
+        resources.files("adaptive_core.v3.guardrails")
+        .joinpath("amg_guardrails_v1.json")
+        .read_text(encoding="utf-8")
+    )
     data = json.loads(data_text)
 
     if not isinstance(data, dict) or "guardrails" not in data or "version" not in data:
@@ -60,17 +74,23 @@ def load_registry() -> GuardrailRegistry:
     for item in raw:
         if not isinstance(item, dict):
             raise ValueError(f"{ReasonId.AC_V3_GUARDRAIL_REGISTRY_INVALID.value}: guardrail entry must be object")
+
         gid = item.get("id")
         title = item.get("title")
         category = item.get("category")
-        if not (isinstance(gid, str) and gid.startswith("AMG-")):
+
+        if not _is_valid_amg_id(gid):
             raise ValueError(f"{ReasonId.AC_V3_GUARDRAIL_REGISTRY_INVALID.value}: bad id")
+
         if not isinstance(title, str) or not title.strip():
             raise ValueError(f"{ReasonId.AC_V3_GUARDRAIL_REGISTRY_INVALID.value}: bad title for {gid}")
+
         if not isinstance(category, str) or not category.strip():
             raise ValueError(f"{ReasonId.AC_V3_GUARDRAIL_REGISTRY_INVALID.value}: bad category for {gid}")
+
         if gid in guardrails:
             raise ValueError(f"{ReasonId.AC_V3_GUARDRAIL_REGISTRY_INVALID.value}: duplicate {gid}")
+
         guardrails[gid] = Guardrail(id=gid, title=title.strip(), category=category.strip())
 
     return GuardrailRegistry(guardrails=guardrails, version=version)
