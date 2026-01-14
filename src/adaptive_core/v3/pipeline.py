@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Optional, Tuple, List
 
+from .correlation import CorrelationSnapshot
 from .drift import LayerContract
 from .evidence_store import EvidenceSnapshot
 from .envelope import ReportEnvelopeV3, create_report_envelope
@@ -18,9 +19,12 @@ def run_v3_pipeline(
     snapshot: EvidenceSnapshot,
     confidence_threshold: float,
     capabilities: CapabilitiesV3,
-    # NEW in Step 8:
+    # Step 8:
     drift_contracts: Optional[List[LayerContract]] = None,
     include_drift_graph: bool = False,
+    # Step 10:
+    correlation_snapshot: Optional[CorrelationSnapshot] = None,
+    include_correlation: bool = False,
 ) -> Tuple[UpgradeReportV3, str, str, ReportEnvelopeV3]:
     """
     Deterministic v3 pipeline runner.
@@ -39,6 +43,8 @@ def run_v3_pipeline(
         confidence_threshold=confidence_threshold,
         drift_contracts=drift_contracts,
         include_drift_graph=include_drift_graph,
+        correlation_snapshot=correlation_snapshot,
+        include_correlation=include_correlation,
     )
 
     canonical_json = render_report_json(report)
