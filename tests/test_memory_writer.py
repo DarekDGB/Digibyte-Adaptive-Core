@@ -58,3 +58,26 @@ def test_writer_write_from_dict_rejects_unknown_fields_fail_closed():
         assert False, "expected TypeError for unknown field"
     except TypeError as e:
         assert "unexpected" in str(e).lower()
+
+from adaptive_core.models import AdaptiveEvent
+
+
+def test_writer_sink_property_returns_sink_instance():
+    sink = InMemoryEventSink()
+    writer = AdaptiveMemoryWriter(sink=sink)
+    assert writer.sink is sink
+
+
+def test_writer_write_event_stores_adaptive_event_instance():
+    sink = InMemoryEventSink()
+    writer = AdaptiveMemoryWriter(sink=sink)
+
+    ev = AdaptiveEvent(layer="sentinel", anomaly_type="entropy_drop", severity=1)
+    out = writer.write_event(ev)
+
+    assert out is ev
+    assert len(sink.events) == 1
+    assert sink.events[0] is ev
+    assert sink.events[0].layer == "sentinel"
+    assert sink.events[0].anomaly_type == "entropy_drop"
+    assert int(sink.events[0].severity) == 1
