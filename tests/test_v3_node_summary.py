@@ -97,3 +97,8 @@ def test_missing_by_upstream_reason_id():
     with pytest.raises(ValueError) as e:
         canonicalize_node_summary(d)
     assert "AC_V3_MISSING_FIELD" in str(e.value)
+
+def test_node_summary_window_start_missing_Z_hits_timestamp_invalid():
+    with pytest.raises(ValueError) as e:
+        canonicalize_node_summary(_base(window_start="2026-01-14T00:00:00"))  # no Z
+    assert "AC_V3_TIMESTAMP_INVALID" in str(e.value)
