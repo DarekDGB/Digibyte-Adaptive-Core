@@ -116,3 +116,8 @@ def test_node_summary_window_start_invalid_iso_parse_branch():
     with pytest.raises(ValueError) as e:
         canonicalize_node_summary(_base(window_start="2026-13-99T99:99:99Z"))
     assert "AC_V3_TIMESTAMP_INVALID" in str(e.value)
+
+def test_by_upstream_reason_id_rejects_non_string_key():
+    with pytest.raises(ValueError) as e:
+        canonicalize_node_summary(_base(by_upstream_reason_id={1: 2}))  # type: ignore[dict-item]
+    assert "AC_V3_TYPE_INVALID" in str(e.value)
