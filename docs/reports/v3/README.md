@@ -75,4 +75,4 @@ If documentation and implementation ever diverge:
 
 ---
 
-© 2026 DarekDGB
+© 2025 DarekDGB
