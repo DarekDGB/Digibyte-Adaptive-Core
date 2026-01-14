@@ -102,3 +102,10 @@ def test_node_summary_window_start_missing_Z_hits_timestamp_invalid():
     with pytest.raises(ValueError) as e:
         canonicalize_node_summary(_base(window_start="2026-01-14T00:00:00"))  # no Z
     assert "AC_V3_TIMESTAMP_INVALID" in str(e.value)
+
+def test_node_summary_window_end_invalid_iso_hits_parse_error_branch():
+    # endswith Z so it passes the "must end with Z" check,
+    # but invalid ISO so datetime.fromisoformat(...) throws.
+    with pytest.raises(ValueError) as e:
+        canonicalize_node_summary(_base(window_end="2026-13-99T99:99:99Z"))
+    assert "AC_V3_TIMESTAMP_INVALID" in str(e.value)
